@@ -1,5 +1,3 @@
-"""Usage reporting command."""
-
 from datetime import datetime, timedelta, timezone
 import re
 
@@ -16,7 +14,6 @@ from wandbctl.utils.display import (
 
 
 def parse_duration(duration_str: str) -> timedelta:
-    """Parse duration string like '24h', '7d', '1w' into timedelta."""
     match = re.match(r"^(\d+)([hdwm])$", duration_str.lower())
     if not match:
         raise ValueError(f"Invalid duration format: {duration_str}. Use format like '24h', '7d', '1w'")
@@ -46,26 +43,6 @@ def parse_duration(duration_str: str) -> timedelta:
 )
 @click.option("--refresh", is_flag=True, help="Force sync before showing usage")
 def usage(entity: str | None, project: str | None, duration: str | None, refresh: bool):
-    """Show usage summary: runs, runtime, GPU-hours.
-    
-    Displays aggregated statistics from cached run data including:
-    
-    \b
-    - Total runs by state (finished, running, failed, crashed)
-    - Total runtime hours
-    - Estimated GPU-hours (runtime × GPU count)
-    - Project count
-    
-    Examples:
-    
-        wandbctl usage
-        
-        wandbctl usage --last 24h
-        
-        wandbctl usage --entity my-team --project my-project
-        
-        wandbctl usage --refresh
-    """
     try:
         cache = Cache()
         

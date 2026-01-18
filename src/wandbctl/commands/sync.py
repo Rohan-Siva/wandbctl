@@ -1,5 +1,3 @@
-"""Sync and status commands for cache management."""
-
 from datetime import datetime, timezone
 
 import click
@@ -25,16 +23,6 @@ from wandbctl.utils.display import (
     help="Only sync runs created after this date"
 )
 def sync(entity: str | None, project: str | None, since: datetime | None):
-    """Pull latest run data from W&B into local cache.
-    
-    Examples:
-    
-        wandbctl sync
-        
-        wandbctl sync --entity my-team --project my-project
-        
-        wandbctl sync --since 2024-01-01
-    """
     try:
         client = WandbClient()
         cache = Cache()
@@ -81,14 +69,6 @@ def sync(entity: str | None, project: str | None, since: datetime | None):
 @click.option("--entity", "-e", help="Filter by entity")
 @click.option("--project", "-p", help="Filter by project")
 def status(entity: str | None, project: str | None):
-    """Show cache status and freshness information.
-    
-    Examples:
-    
-        wandbctl status
-        
-        wandbctl status --entity my-team
-    """
     try:
         cache = Cache()
         

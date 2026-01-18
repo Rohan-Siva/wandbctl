@@ -1,5 +1,3 @@
-"""Preflight check command for config validation."""
-
 import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -32,31 +30,6 @@ def preflight(
     warn_only: bool,
     force: bool,
 ):
-    """Validate a config file before launching a training run.
-    
-    Performs pre-launch checks to prevent waste:
-    
-    \b
-    1. Config sanity - Required fields, valid values
-    2. Duplicate detection - Warn if identical config ran recently
-    3. Failure correlation - Warn if similar configs crashed
-    
-    Exit codes:
-    
-    \b
-    - 0: Safe to launch
-    - 1: Issues detected (blocked)
-    
-    Examples:
-    
-        wandbctl preflight config.yaml
-        
-        wandbctl preflight config.yaml --entity my-team --project my-project
-        
-        wandbctl preflight config.yaml --warn-only
-        
-        wandbctl preflight config.yaml --force
-    """
     if force:
         print_info("Force mode: skipping all checks")
         print_success("Preflight passed (forced)")
@@ -145,7 +118,7 @@ def preflight(
                 r for r in runs
                 if r.get("state") in ("failed", "crashed")
                 and r.get("runtime_seconds") is not None
-                and r.get("runtime_seconds") < 300  # Failed in < 5 min
+                and r.get("runtime_seconds") < 300
             ]
             
             if len(recent_failures) > 5:

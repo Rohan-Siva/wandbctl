@@ -1,5 +1,3 @@
-"""W&B API client wrapper for read-only access."""
-
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Iterator, Optional
@@ -8,7 +6,6 @@ import wandb
 
 @dataclass
 class RunMetadata:
-    """Metadata for a W&B run."""
     id: str
     entity: str
     project: str
@@ -23,7 +20,6 @@ class RunMetadata:
     
     @classmethod
     def from_api_run(cls, run: wandb.apis.public.Run) -> "RunMetadata":
-        """Create RunMetadata from a W&B API run object."""
         config = dict(run.config) if run.config else {}
         summary = dict(run.summary) if run.summary else {}
         
@@ -75,21 +71,18 @@ class RunMetadata:
 
 
 class WandbClient:
-    """Client for interacting with W&B Public API."""
     
     def __init__(self):
         self._api = wandb.Api()
     
     @property
     def default_entity(self) -> Optional[str]:
-        """Get the default entity for the authenticated user."""
         try:
             return self._api.default_entity
         except Exception:
             return None
     
     def list_projects(self, entity: Optional[str] = None) -> list[str]:
-        """List all projects for an entity."""
         entity = entity or self.default_entity
         if not entity:
             raise ValueError("No entity specified and no default entity found")
@@ -105,7 +98,6 @@ class WandbClient:
         order: str = "-created_at",
         per_page: int = 100,
     ) -> Iterator[RunMetadata]:
-        """List runs with optional filters."""
         entity = entity or self.default_entity
         if not entity:
             raise ValueError("No entity specified and no default entity found")
@@ -128,7 +120,6 @@ class WandbClient:
             raise ConnectionError(f"Failed to fetch runs: {e}")
     
     def get_run(self, entity: str, project: str, run_id: str) -> RunMetadata:
-        """Get a specific run by ID."""
         path = f"{entity}/{project}/{run_id}"
         run = self._api.run(path)
         return RunMetadata.from_api_run(run)
@@ -138,6 +129,5 @@ class WandbClient:
         entity: Optional[str] = None,
         project: Optional[str] = None,
     ) -> Iterator[RunMetadata]:
-        """List only currently running runs (fresh fetch)."""
         filters = {"state": "running"}
         return self.list_runs(entity=entity, project=project, filters=filters)

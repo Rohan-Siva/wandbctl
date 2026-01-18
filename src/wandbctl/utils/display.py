@@ -1,5 +1,3 @@
-"""Display utilities for rich terminal output."""
-
 from datetime import datetime, timezone
 from typing import Optional
 
@@ -13,7 +11,6 @@ console = Console()
 
 
 def format_duration(seconds: Optional[int]) -> str:
-    """Format seconds into human-readable duration."""
     if seconds is None:
         return "—"
     
@@ -29,7 +26,6 @@ def format_duration(seconds: Optional[int]) -> str:
 
 
 def format_time_ago(dt: Optional[datetime]) -> str:
-    """Format datetime as 'X ago' string."""
     if dt is None:
         return "—"
     
@@ -51,7 +47,6 @@ def format_time_ago(dt: Optional[datetime]) -> str:
 
 
 def format_bytes(size_bytes: int) -> str:
-    """Format bytes into human-readable size."""
     for unit in ["B", "KB", "MB", "GB"]:
         if abs(size_bytes) < 1024:
             return f"{size_bytes:.1f} {unit}"
@@ -63,7 +58,6 @@ def print_data_source(
     source: str,
     last_sync: Optional[datetime] = None,
 ) -> None:
-    """Print data source indicator."""
     if source == "cache" and last_sync:
         age = format_time_ago(last_sync)
         text = Text()
@@ -82,27 +76,22 @@ def print_data_source(
 
 
 def print_error(message: str) -> None:
-    """Print error message."""
     console.print(f"[red bold]✗[/red bold] {message}")
 
 
 def print_success(message: str) -> None:
-    """Print success message."""
     console.print(f"[green bold]✓[/green bold] {message}")
 
 
 def print_warning(message: str) -> None:
-    """Print warning message."""
     console.print(f"[yellow bold]⚠[/yellow bold] {message}")
 
 
 def print_info(message: str) -> None:
-    """Print info message."""
     console.print(f"[blue]ℹ[/blue] {message}")
 
 
 def create_usage_table(stats: dict) -> Table:
-    """Create usage statistics table."""
     table = Table(title="Usage Summary", show_header=True, header_style="bold cyan")
     table.add_column("Metric", style="dim")
     table.add_column("Value", justify="right")
@@ -124,7 +113,6 @@ def create_usage_table(stats: dict) -> Table:
 
 
 def create_zombies_table(zombies: list[dict]) -> Table:
-    """Create zombie runs table."""
     table = Table(title="Zombie Runs", show_header=True, header_style="bold red")
     table.add_column("Run ID", style="cyan", no_wrap=True)
     table.add_column("Project")
@@ -151,7 +139,6 @@ def create_status_table(
     last_sync: Optional[datetime],
     cache_path: str,
 ) -> Table:
-    """Create cache status table."""
     table = Table(title="Cache Status", show_header=True, header_style="bold cyan")
     table.add_column("Property", style="dim")
     table.add_column("Value")
@@ -168,7 +155,6 @@ def print_preflight_result(
     passed: bool,
     checks: list[dict],
 ) -> None:
-    """Print preflight check results."""
     if passed:
         panel = Panel(
             "[green bold]✓ Preflight passed[/green bold]\n\nAll checks passed. Safe to launch.",

@@ -1,5 +1,3 @@
-"""Main CLI entry point for wandbctl."""
-
 import click
 
 from wandbctl.commands.sync import sync, status
@@ -11,10 +9,6 @@ from wandbctl.commands.preflight import preflight
 @click.group()
 @click.version_option(package_name="wandbctl")
 def cli():
-    """wandbctl - Monitor, audit, and analyze Weights & Biases usage.
-    
-    Surface waste and prevent failures before they burn compute.
-    """
     pass
 
 

@@ -1,5 +1,3 @@
-"""DuckDB cache layer for local storage and fast queries."""
-
 import json
 from datetime import datetime, timezone
 from pathlib import Path
@@ -45,7 +43,6 @@ CREATE TABLE IF NOT EXISTS sync_log (
 
 
 class Cache:
-    """DuckDB-based local cache for W&B data."""
     
     def __init__(self, path: Optional[Path] = None):
         self.path = path or DEFAULT_CACHE_PATH
@@ -54,18 +51,15 @@ class Cache:
         self._init_schema()
     
     def _init_schema(self):
-        """Initialize database schema."""
         for statement in SCHEMA_SQL.strip().split(";"):
             statement = statement.strip()
             if statement:
                 self._conn.execute(statement)
     
     def close(self):
-        """Close database connection."""
         self._conn.close()
     
     def upsert_run(self, run: RunMetadata) -> None:
-        """Insert or update a run in the cache."""
         now = datetime.now(timezone.utc)
         self._conn.execute(
             """
@@ -91,7 +85,6 @@ class Cache:
         )
     
     def upsert_runs(self, runs: list[RunMetadata]) -> int:
-        """Batch upsert runs. Returns count."""
         count = 0
         for run in runs:
             self.upsert_run(run)
@@ -104,7 +97,6 @@ class Cache:
         project: Optional[str],
         run_count: int,
     ) -> None:
-        """Record a sync operation."""
         now = datetime.now(timezone.utc)
         self._conn.execute(
             """
@@ -119,7 +111,6 @@ class Cache:
         entity: Optional[str] = None,
         project: Optional[str] = None,
     ) -> Optional[datetime]:
-        """Get the last sync timestamp for entity/project."""
         if entity and project:
             result = self._conn.execute(
                 """
@@ -148,7 +139,6 @@ class Cache:
         entity: Optional[str] = None,
         project: Optional[str] = None,
     ) -> int:
-        """Get count of cached runs."""
         if entity and project:
             result = self._conn.execute(
                 "SELECT COUNT(*) FROM runs WHERE entity = ? AND project = ?",
@@ -167,7 +157,6 @@ class Cache:
         return result[0] if result else 0
     
     def get_cache_size_bytes(self) -> int:
-        """Get cache file size in bytes."""
         if self.path.exists():
             return self.path.stat().st_size
         return 0
@@ -179,7 +168,6 @@ class Cache:
         state: Optional[str] = None,
         since: Optional[datetime] = None,
     ) -> list[dict]:
-        """Query runs with filters. Returns list of dicts."""
         conditions = []
         params = []
         
@@ -221,7 +209,6 @@ class Cache:
         project: Optional[str] = None,
         since: Optional[datetime] = None,
     ) -> dict:
-        """Get aggregated usage statistics."""
         conditions = []
         params = []
         
@@ -270,7 +257,6 @@ class Cache:
         entity: Optional[str] = None,
         project: Optional[str] = None,
     ) -> list[dict]:
-        """Get all running runs from cache."""
         return self.query_runs(entity=entity, project=project, state="running")
     
     def get_config_hash_matches(
@@ -280,7 +266,6 @@ class Cache:
         project: Optional[str] = None,
         limit: int = 10,
     ) -> list[dict]:
-        """Find runs with matching config hash (for duplicate detection)."""
         conditions = ["config IS NOT NULL"]
         params = []
         
@@ -301,7 +286,7 @@ class Cache:
             ORDER BY created_at DESC
             LIMIT ?
             """,
-            params + [limit * 10]  # Fetch more to filter
+            params + [limit * 10]
         ).fetchall()
         
         columns = ["id", "entity", "project", "name", "state", "created_at", "runtime_seconds", "config"]

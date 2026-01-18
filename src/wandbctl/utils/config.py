@@ -1,5 +1,3 @@
-"""Configuration parsing utilities."""
-
 import hashlib
 import json
 from pathlib import Path
@@ -9,7 +7,6 @@ import yaml
 
 
 def load_config(path: str | Path) -> dict[str, Any]:
-    """Load a YAML or JSON config file."""
     path = Path(path)
     
     if not path.exists():
@@ -29,16 +26,11 @@ def load_config(path: str | Path) -> dict[str, Any]:
 
 
 def hash_config(config: dict) -> str:
-    """Create a stable hash of a config dict."""
     normalized = json.dumps(config, sort_keys=True, default=str)
     return hashlib.sha256(normalized.encode()).hexdigest()[:16]
 
 
 def validate_config(config: dict) -> list[dict]:
-    """
-    Validate a config for common issues.
-    Returns list of {"passed": bool, "message": str, "severity": str}
-    """
     issues = []
     
     if "batch_size" in config:

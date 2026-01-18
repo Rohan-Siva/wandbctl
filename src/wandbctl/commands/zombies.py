@@ -1,5 +1,3 @@
-"""Zombie run detection command."""
-
 from datetime import datetime, timezone
 
 import click
@@ -23,11 +21,6 @@ def classify_zombie(
     threshold_minutes: int,
     avg_runtime: float | None,
 ) -> dict | None:
-    """
-    Classify if a run is a zombie.
-    
-    Returns zombie info dict if zombie, None otherwise.
-    """
     updated_at = run.get("updated_at")
     runtime = run.get("runtime_seconds")
     
@@ -83,29 +76,6 @@ def classify_zombie(
     help="Minutes without updates to flag as zombie (default: 15)"
 )
 def zombies(entity: str | None, project: str | None, threshold: int):
-    """Detect stalled/zombie runs that are active but not progressing.
-    
-    A zombie run is a run that:
-    
-    \b
-    - Has state = "running"
-    - Has not logged metrics/updates for N minutes
-    - May have abnormally long runtime compared to similar runs
-    
-    Runs are classified with confidence levels:
-    
-    \b
-    - HIGH: No updates for 2× threshold, or runtime 3× average
-    - MEDIUM: No updates for threshold minutes
-    
-    Examples:
-    
-        wandbctl zombies
-        
-        wandbctl zombies --threshold 30
-        
-        wandbctl zombies --entity my-team --project my-project
-    """
     try:
         client = WandbClient()
         cache = Cache()
