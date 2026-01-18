@@ -1,138 +1,207 @@
+```
+                         _  _          _   _ 
+ __      ____ _ _ __   __| || |__   ___| |_| |
+ \ \ /\ / / _` | '_ \ / _` || '_ \ / __| __| |
+  \ V  V / (_| | | | | (_| || |_) | (__| |_| |
+   \_/\_/ \__,_|_| |_|\__,_||_.__/ \___|\__|_|
+                                              
+        Surface waste. Prevent failures. Save compute.
+```
+
 # wandbctl
 
-A local command-line tool for monitoring, auditing, and analyzing Weights & Biases usage.
+> A blazing fast CLI for monitoring, auditing, and analyzing your Weights & Biases usage.  
+> **Stop burning GPU hours. Start knowing where they go.**
 
-**Surface waste and prevent failures before they burn compute.**
+---
 
 ## Features
 
-- **Usage reporting**: Summarize runs, runtime, GPU-hours across projects
-- **Zombie detection**: Find runs that are active but not making progress
-- **Preflight checks**: Validate configs before launch, detect duplicates
-- **Local caching**: Fast queries with DuckDB, works offline
-
-## Installation
-
-```bash
-# From source
-pip install -e .
-
-# Or with pip (once published)
-pip install wandbctl
 ```
+┌─────────────────────────────────────────────────────────────────┐
+│                                                                 │
+│   USAGE            Track runs, runtime, GPU-hours at a glance  │
+│   ─────────────────────────────────────────────────────────────│
+│   ZOMBIES          Detect stalled runs before they eat your    │
+│                    compute budget                               │
+│   ─────────────────────────────────────────────────────────────│
+│   PREFLIGHT        Validate configs & catch duplicates         │
+│                    before launch                                │
+│   ─────────────────────────────────────────────────────────────│
+│   LOCAL CACHE      DuckDB-powered queries. Works offline.      │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
 
 ## Quick Start
 
 ```bash
-# Set your W&B API key
+# Install
+pip install -e .
+
+# Set your API key
 export WANDB_API_KEY=your_key_here
 
-# Sync runs to local cache
+# Sync your runs to local cache
 wandbctl sync --entity my-team --project my-project
 
-# Check cache status
-wandbctl status
+# See where your compute is going
+wandbctl usage --last 7d
 
-# View usage summary
-wandbctl usage
-wandbctl usage --last 24h
-
-# Detect zombie runs
+# Hunt for zombie runs
 wandbctl zombies
 
 # Preflight check before training
 wandbctl preflight config.yaml
 ```
 
+---
+
 ## Commands
 
-### `wandbctl sync`
-
-Pull runs from W&B into local cache.
-
+### `sync` - Pull runs into local cache
 ```bash
-wandbctl sync                              # Sync all projects
-wandbctl sync --entity my-team             # Sync specific entity
-wandbctl sync --project my-project         # Sync specific project
-wandbctl sync --since 2024-01-01           # Sync runs after date
+wandbctl sync                              # Sync all
+wandbctl sync --entity my-team             # Specific entity
+wandbctl sync --since 2024-01-01           # Only recent runs
 ```
 
-### `wandbctl status`
-
-Show cache state and freshness.
-
+### `status` - Show cache state
 ```bash
 wandbctl status
 ```
-
-### `wandbctl usage`
-
-Display usage statistics from cached data.
-
-```bash
-wandbctl usage                             # All cached runs
-wandbctl usage --last 24h                  # Last 24 hours
-wandbctl usage --last 7d                   # Last 7 days
-wandbctl usage --entity my-team            # Filter by entity
-wandbctl usage --refresh                   # Force sync first
+```
+       Cache Status        
+┏━━━━━━━━━━━━━━┳━━━━━━━━━━━━┓
+│ Property     │ Value      │
+├──────────────┼────────────┤
+│ Cache size   │ 2.1 MB     │
+│ Cached runs  │ 1,247      │
+│ Last sync    │ 5m ago     │
+└──────────────┴────────────┘
 ```
 
-### `wandbctl zombies`
-
-Detect stalled runs (active but not logging).
-
+### `usage` - Track where compute goes
 ```bash
-wandbctl zombies                           # Use default 15min threshold
-wandbctl zombies --threshold 30            # Custom threshold
-wandbctl zombies --project my-project      # Filter by project
+wandbctl usage                  # All time
+wandbctl usage --last 24h       # Last 24 hours
+wandbctl usage --last 7d        # Last week
+wandbctl usage --refresh        # Force sync first
+```
+```
+       Usage Summary       
+┏━━━━━━━━━━━━━━━┳━━━━━━━━━━┓
+│ Metric        │ Value    │
+├───────────────┼──────────┤
+│ Total runs    │ 247      │
+│   Finished    │ 198      │
+│   Running     │ 12       │
+│   Failed      │ 37       │
+├───────────────┼──────────┤
+│ Total runtime │ 847h 23m │
+│ Est. GPU-hrs  │ 2,541.2h │
+└───────────────┴──────────┘
 ```
 
-Zombie classification:
-- **HIGH confidence**: No updates for 30+ minutes, or runtime 3× average
-- **MEDIUM confidence**: No updates for 15+ minutes
+### `zombies` - Find stalled runs
 
-### `wandbctl preflight`
-
-Validate config before launching a training run.
-
-```bash
-wandbctl preflight config.yaml             # Check config
-wandbctl preflight config.yaml --warn-only # Warn but don't fail
-wandbctl preflight config.yaml --force     # Skip all checks
+```
+  ZOMBIE DETECTION
+  
+  Active runs that stopped logging
+  but never finished. They're eating
+  your GPU hours right now.
 ```
 
-Checks performed:
-1. **Config sanity**: Required fields, valid values
-2. **Duplicate detection**: Warn if identical config ran recently
-3. **Failure patterns**: Warn if similar configs crashed
-
-CI integration:
 ```bash
+wandbctl zombies                    # Default 15min threshold
+wandbctl zombies --threshold 30     # Custom threshold
+wandbctl zombies --project my-proj  # Filter by project
+```
+
+**Confidence Levels:**
+- 🔴 **HIGH** - No updates for 30+ min, or runtime 3x average
+- 🟡 **MEDIUM** - No updates for 15+ min
+
+### `preflight` - Pre-launch validation
+
+```
+  PREFLIGHT CHECKS
+  
+  Gate your CI/training scripts.
+  Catch problems before burning compute.
+```
+
+```bash
+wandbctl preflight config.yaml              # Check config
+wandbctl preflight config.yaml --warn-only  # Don't block
+wandbctl preflight config.yaml --force      # Skip all checks
+```
+
+**Checks performed:**
+1. Config sanity (required fields, valid values)
+2. Duplicate detection (identical config ran recently?)
+3. Failure patterns (similar configs crashed?)
+
+**CI Integration:**
+```bash
+#!/bin/bash
 wandbctl preflight config.yaml || exit 1
 python train.py
 ```
 
+---
+
 ## Data Freshness
 
-Commands use a hybrid freshness model:
+| Command | Source | Speed |
+|---------|--------|-------|
+| `usage` | Cache | Instant |
+| `status` | Cache | Instant |
+| `zombies` | Live | Fast |
+| `preflight` | Cache + config | Instant |
 
-| Command | Data Source | Behavior |
-|---------|-------------|----------|
-| `usage` | Cache | Fast, shows cache age |
-| `status` | Cache | Shows cache state |
-| `zombies` | Live | Always fetches running runs |
-| `preflight` | Cache + config | Uses cached history |
+> Use `--refresh` to force sync on cache-first commands.
 
-Use `--refresh` flag to force sync on cache-first commands.
+---
 
 ## Configuration
 
-Cache location: `~/.wandbctl/cache.duckdb`
+**Cache:** `~/.wandbctl/cache.duckdb`
 
-Authentication uses standard W&B methods:
+**Authentication:** Uses standard W&B methods:
 - `WANDB_API_KEY` environment variable
 - `~/.netrc` file
+
+---
+
+## Development
+
+```bash
+# Install with dev dependencies
+pip install -e ".[dev]"
+
+# Run tests
+pytest tests/ -v
+
+# Run specific test
+pytest tests/test_zombies.py -v
+```
+
+---
 
 ## License
 
 MIT
+
+---
+
+```
+    ╔═══════════════════════════════════════════════════════╗
+    ║                                                       ║
+    ║      Made for ML engineers who hate waste             ║
+    ║                                                       ║
+    ╚═══════════════════════════════════════════════════════╝
+```
