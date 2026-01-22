@@ -20,15 +20,12 @@
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                                                                 │
-│   USAGE            Track runs, runtime, GPU-hours at a glance  │
-│   ─────────────────────────────────────────────────────────────│
-│   ZOMBIES          Detect stalled runs before they eat your    │
-│                    compute budget                               │
-│   ─────────────────────────────────────────────────────────────│
-│   PREFLIGHT        Validate configs & catch duplicates         │
-│                    before launch                                │
-│   ─────────────────────────────────────────────────────────────│
-│   LOCAL CACHE      DuckDB-powered queries. Works offline.      │
+│   15 Commands for Complete W&B Visibility                       │
+│                                                                 │
+│   CORE            sync, status, usage, zombies, preflight       │
+│   ANALYTICS       trends, costs, failures, top                  │
+│   MANAGEMENT      compare, export, projects, clean, summary     │
+│   DIAGNOSTIC      health                                        │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -38,28 +35,51 @@
 ## Quick Start
 
 ```bash
-# Install
 pip install -e .
-
-# Set your API key
 export WANDB_API_KEY=your_key_here
 
-# Sync your runs to local cache
-wandbctl sync --entity my-team --project my-project
-
-# See where your compute is going
+wandbctl sync --entity my-team
 wandbctl usage --last 7d
-
-# Hunt for zombie runs
 wandbctl zombies
-
-# Preflight check before training
-wandbctl preflight config.yaml
 ```
 
 ---
 
-## Commands
+## Commands Reference
+
+### Core Commands
+
+| Command | Description |
+|---------|-------------|
+| `sync` | Pull runs from W&B into local cache |
+| `status` | Show cache state and freshness |
+| `usage` | Track runs, runtime, GPU-hours |
+| `zombies` | Detect stalled runs eating compute |
+| `preflight` | Validate configs before launch |
+
+### Analytics Commands (v2)
+
+| Command | Description |
+|---------|-------------|
+| `trends` | ASCII sparkline charts of activity over time |
+| `costs` | Estimate GPU costs by project |
+| `top` | Leaderboard of runs by runtime/GPU-hours |
+| `compare` | Side-by-side run config/metrics comparison |
+| `export` | Export cached runs to JSON |
+
+### Management Commands (v3)
+
+| Command | Description |
+|---------|-------------|
+| `projects` | List all projects with stats |
+| `failures` | Analyze failure patterns and categories |
+| `clean` | Purge old runs from cache |
+| `summary` | Quick one-liner usage stats |
+| `health` | Check W&B auth and cache health |
+
+---
+
+## Detailed Usage
 
 ### `sync` - Pull runs into local cache
 ```bash
@@ -68,88 +88,95 @@ wandbctl sync --entity my-team             # Specific entity
 wandbctl sync --since 2024-01-01           # Only recent runs
 ```
 
-### `status` - Show cache state
-```bash
-wandbctl status
-```
-```
-       Cache Status        
-┏━━━━━━━━━━━━━━┳━━━━━━━━━━━━┓
-│ Property     │ Value      │
-├──────────────┼────────────┤
-│ Cache size   │ 2.1 MB     │
-│ Cached runs  │ 1,247      │
-│ Last sync    │ 5m ago     │
-└──────────────┴────────────┘
-```
-
 ### `usage` - Track where compute goes
 ```bash
 wandbctl usage                  # All time
 wandbctl usage --last 24h       # Last 24 hours
-wandbctl usage --last 7d        # Last week
 wandbctl usage --refresh        # Force sync first
-```
-```
-       Usage Summary       
-┏━━━━━━━━━━━━━━━┳━━━━━━━━━━┓
-│ Metric        │ Value    │
-├───────────────┼──────────┤
-│ Total runs    │ 247      │
-│   Finished    │ 198      │
-│   Running     │ 12       │
-│   Failed      │ 37       │
-├───────────────┼──────────┤
-│ Total runtime │ 847h 23m │
-│ Est. GPU-hrs  │ 2,541.2h │
-└───────────────┴──────────┘
 ```
 
 ### `zombies` - Find stalled runs
-
-```
-  ZOMBIE DETECTION
-  
-  Active runs that stopped logging
-  but never finished. They're eating
-  your GPU hours right now.
-```
-
-```bash
-wandbctl zombies                    # Default 15min threshold
-wandbctl zombies --threshold 30     # Custom threshold
-wandbctl zombies --project my-proj  # Filter by project
-```
 
 **Confidence Levels:**
 - 🔴 **HIGH** - No updates for 30+ min, or runtime 3x average
 - 🟡 **MEDIUM** - No updates for 15+ min
 
+```bash
+wandbctl zombies                    # Default 15min threshold
+wandbctl zombies --threshold 30     # Custom threshold
+```
+
 ### `preflight` - Pre-launch validation
-
-```
-  PREFLIGHT CHECKS
-  
-  Gate your CI/training scripts.
-  Catch problems before burning compute.
-```
-
 ```bash
 wandbctl preflight config.yaml              # Check config
 wandbctl preflight config.yaml --warn-only  # Don't block
 wandbctl preflight config.yaml --force      # Skip all checks
 ```
 
-**Checks performed:**
-1. Config sanity (required fields, valid values)
-2. Duplicate detection (identical config ran recently?)
-3. Failure patterns (similar configs crashed?)
-
-**CI Integration:**
+### `trends` - Activity over time
 ```bash
-#!/bin/bash
-wandbctl preflight config.yaml || exit 1
-python train.py
+wandbctl trends --last 30d        # Last 30 days
+wandbctl trends --group week      # Group by week
+```
+
+Output:
+```
+Runs:      ▁▂▃▄▅▆▇█▅▃  (247 total)
+Runtime:   ▁▁▂▃▅█▇▅▃▂  (847h total)
+```
+
+### `costs` - GPU cost estimation
+```bash
+wandbctl costs                    # Default $2.50/GPU-hr
+wandbctl costs --rate 3.10        # Custom rate
+wandbctl costs --last 7d          # Recent only
+```
+
+### `top` - Run leaderboard
+```bash
+wandbctl top                      # Top 10 by runtime
+wandbctl top --by gpu-hours -n 20 # Top 20 by GPU-hours
+wandbctl top --state failed       # Top failed runs
+```
+
+### `compare` - Run comparison
+```bash
+wandbctl compare abc123 def456 ghi789
+```
+
+### `export` - JSON export
+```bash
+wandbctl export -o runs.json      # Export to file
+wandbctl export --last 7d --pretty # Pretty print recent
+```
+
+### `projects` - Project overview
+```bash
+wandbctl projects                 # All projects
+wandbctl projects --entity team   # Specific entity
+```
+
+### `failures` - Failure analysis
+```bash
+wandbctl failures                 # Analyze all failures
+wandbctl failures --last 7d       # Recent failures only
+```
+
+### `clean` - Cache cleanup
+```bash
+wandbctl clean --older-than 90    # Delete runs >90 days old
+wandbctl clean --dry-run          # Preview what would delete
+```
+
+### `summary` - One-liner stats
+```bash
+wandbctl summary
+# 247 runs | 198 ok | 37 fail | 12 running | 847h runtime | 2541 GPU-hrs | 80% success
+```
+
+### `health` - System health check
+```bash
+wandbctl health
 ```
 
 ---
@@ -158,12 +185,9 @@ python train.py
 
 | Command | Source | Speed |
 |---------|--------|-------|
-| `usage` | Cache | Instant |
-| `status` | Cache | Instant |
+| `usage`, `status`, `trends`, `costs`, `top`, `export`, `projects`, `failures`, `summary` | Cache | Instant |
 | `zombies` | Live | Fast |
 | `preflight` | Cache + config | Instant |
-
-> Use `--refresh` to force sync on cache-first commands.
 
 ---
 
@@ -171,7 +195,7 @@ python train.py
 
 **Cache:** `~/.wandbctl/cache.duckdb`
 
-**Authentication:** Uses standard W&B methods:
+**Authentication:**
 - `WANDB_API_KEY` environment variable
 - `~/.netrc` file
 
@@ -180,14 +204,8 @@ python train.py
 ## Development
 
 ```bash
-# Install with dev dependencies
 pip install -e ".[dev]"
-
-# Run tests
 pytest tests/ -v
-
-# Run specific test
-pytest tests/test_zombies.py -v
 ```
 
 ---
@@ -200,8 +218,6 @@ MIT
 
 ```
     ╔═══════════════════════════════════════════════════════╗
-    ║                                                       ║
     ║      Made for ML engineers who hate waste             ║
-    ║                                                       ║
     ╚═══════════════════════════════════════════════════════╝
 ```
