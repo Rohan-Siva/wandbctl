@@ -6,6 +6,14 @@ from wandbctl.commands.zombies import zombies
 from wandbctl.commands.preflight import preflight
 from wandbctl.commands.trends import trends
 from wandbctl.commands.costs import costs
+from wandbctl.commands.compare import compare
+from wandbctl.commands.export import export
+from wandbctl.commands.top import top
+from wandbctl.commands.clean import clean
+from wandbctl.commands.health import health
+from wandbctl.commands.failures import failures
+from wandbctl.commands.projects import projects
+from wandbctl.commands.summary import summary
 
 
 @click.group()
@@ -21,6 +29,14 @@ cli.add_command(zombies)
 cli.add_command(preflight)
 cli.add_command(trends)
 cli.add_command(costs)
+cli.add_command(compare)
+cli.add_command(export)
+cli.add_command(top)
+cli.add_command(clean)
+cli.add_command(health)
+cli.add_command(failures)
+cli.add_command(projects)
+cli.add_command(summary)
 
 
 if __name__ == "__main__":
