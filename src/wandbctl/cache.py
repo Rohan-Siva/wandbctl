@@ -91,6 +91,19 @@ class Cache:
             count += 1
         return count
     
+    def delete_runs_before(self, cutoff: datetime) -> int:
+        result = self._conn.execute(
+            "SELECT COUNT(*) FROM runs WHERE created_at < ?",
+            [cutoff]
+        ).fetchone()
+        count = result[0] if result else 0
+        
+        self._conn.execute(
+            "DELETE FROM runs WHERE created_at < ?",
+            [cutoff]
+        )
+        return count
+    
     def log_sync(
         self,
         entity: str,
